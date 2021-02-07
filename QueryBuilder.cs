@@ -10,7 +10,7 @@ public class Query
     public List<FieldAndQuery> queries { get; set; }
     public string sortBy { get; set; }
     public string sortOrder { get; set; }
-    public string future { get; set; }
+    public bool future { get; set; }
     public int offset { get; set; }
     public int size { get; set; }
 }

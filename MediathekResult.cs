@@ -35,5 +35,14 @@ public class MediathekResult
 {
     public Result result;
     public object err;
+
+    public int countResults()
+    {
+        if(result?.results == null)
+        {
+            return 0;
+        }
+        return result.results.Count;
+    }
 }
 

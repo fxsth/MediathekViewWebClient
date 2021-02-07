@@ -47,6 +47,29 @@ public class MediathekClient
             _query.queries.Add(new FieldAndQuery() { fields = "id", query = value });
         }
     }
+    public bool future
+    {
+        set
+        {
+            _query.future = value;
+        }
+    }
+
+    public int offset
+    {
+        set
+        {
+            _query.offset = value;
+        }
+    }
+    public int size
+    {
+        set
+        {
+            _query.size = value;
+        }
+    }
+
     public async Task<MediathekResult> query()
     {
         try
@@ -68,14 +91,14 @@ public class MediathekClient
     {
         var text = JsonSerializer.Serialize(query);
         var httpContent = new StringContent(text, Encoding.UTF8, "text/plain");
-        client.DefaultRequestHeaders.Accept.Clear();
-        // client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("text/plain"));
         var streamTask = await client.PostAsync("https://mediathekviewweb.de/api/query", httpContent);
+        if(streamTask.IsSuccessStatusCode)
+        {
         String stringResult = await streamTask.Content.ReadAsStringAsync();
-        // var repositories = await JsonSerializer.DeserializeAsync<List<Repository>>(await streamTask);
         JsonSerializerOptions defaultSerializerSettings = new JsonSerializerOptions();
         defaultSerializerSettings.IncludeFields = true;
-        var des = JsonSerializer.Deserialize<MediathekResult>(stringResult, defaultSerializerSettings);
-        return des;
+        return JsonSerializer.Deserialize<MediathekResult>(stringResult, defaultSerializerSettings);
+        }
+        return new MediathekResult{err = streamTask.ReasonPhrase};
     }
 }
