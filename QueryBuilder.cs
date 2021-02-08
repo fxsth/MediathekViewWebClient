@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 
+namespace QueryData
+{
 ///<summary>Data type for serializing into json-content</summary>
 public class Query
 {
@@ -20,4 +22,5 @@ public class FieldAndQuery
 {
     public string fields { get; set; }
     public string query { get; set; }
+}
 }

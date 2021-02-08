@@ -7,7 +7,7 @@ public class MediaElement
     public string description{get;set;}
     public int timestamp{get;set;}
     public int duration{get;set;}
-    public int size{get;set;}
+    public long size{get;set;}
     public string url_website{get;set;}
     public string url_subtitle{get;set;}
     public string url_video{get;set;}
@@ -43,6 +43,10 @@ public class MediathekResult
             return 0;
         }
         return result.results.Count;
+    }
+    public bool hasErrors()
+    {
+        return err != null;
     }
 }
 
