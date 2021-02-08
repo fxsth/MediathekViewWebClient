@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -7,81 +6,87 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using QueryData;
 
-
 public class MediathekClient
 {
-    public MediathekClient()
-    {
-        _query = new Query();
+    public MediathekClient() => _query = new Query();
+    public MediathekClient searchTitle(string value){
+        _query.addFieldAndQuery("title", value );
+        return this;
+        }
+    public MediathekClient searchTitleOrTopic(string value){
+        _query.addFieldAndQuery("title", "topic", value );
+        return this;
     }
+    public MediathekClient searchTopic(string value) {
+        _query.addFieldAndQuery("topic", value );
+        return this;
+    }
+    public MediathekClient searchChannel(Channel channel){
+        _query.addFieldAndQuery("channel", channel==Channel.DreiSat ? "3sat" : Enum.GetName<Channel>(channel) );
+        return this;
+    }
+    public MediathekClient searchDuration(string value) {
+        _query.addFieldAndQuery("duration", value );
+        return this;
+    }
+    public MediathekClient searchId(string value) {
+        _query.addFieldAndQuery("id", value );
+        return this;
+    }
+    public MediathekClient withFutureMedia(bool value) {
+        _query.future = value;
+        return this;
+    }
+    public MediathekClient setOffset(int value) {
+        _query.offset = value;
+        return this;
+    }
+    public MediathekClient setMaximumResults(int value) {
+        _query.size = value;
+        return this;
+    }
+    public MediathekClient orderResultsBy(string value, SortOrder order = SortOrder.asc) {
+        _query.sortBy = value;
+        _query.sortOrder = Enum.GetName<SortOrder>(order);
+        return this;
+    }
+
+
     public string title
     {
-        set
-        {
-            _query.queries.Add(new FieldAndQuery() { fields = "title", query = value });
-        }
+        set => _query.addFieldAndQuery("title", value );
     }
     public string topic
     {
-        set
-        {
-            _query.queries.Add(new FieldAndQuery() { fields = "topic", query = value });
-        }
+        set => _query.addFieldAndQuery("topic", value );
     }
     public Channel channel
     {
-        set
-        {
-            string channelName;
-            if(value == Channel.DreiSat)
-            {
-               channelName = "3sat";
-            }
-            else
-            {
-                channelName = Enum.GetName<Channel>(value);
-            }
-            _query.queries.Add(new FieldAndQuery() { fields = "channel", query = channelName });
-        }
+        set =>_query.addFieldAndQuery("channel", value==Channel.DreiSat ? "3sat" : Enum.GetName<Channel>(value) );
     }
     public int duration
     {
-        set
-        {
-            _query.queries.Add(new FieldAndQuery() { fields = "duration", query = value.ToString() });
-        }
+        set => _query.addFieldAndQuery("duration", value.ToString() );
     }
     public string id
     {
-        set
-        {
-            _query.queries.Add(new FieldAndQuery() { fields = "id", query = value });
-        }
+        set => _query.addFieldAndQuery("id", value );
     }
     public bool future
     {
-        set
-        {
-            _query.future = value;
-        }
+        set => _query.future = value;
     }
 
     public int offset
     {
-        set
-        {
-            _query.offset = value;
-        }
+        set => _query.offset = value;
     }
     public int size
     {
-        set
-        {
-            _query.size = value;
-        }
+        set => _query.size = value;
     }
 
-    public async Task<MediathekResult> query()
+    public async Task<MediathekResult> sendQuery()
     {
         try
         {
@@ -100,20 +105,22 @@ public class MediathekClient
 
     private static async Task<MediathekResult> ProcessQuery(Query query)
     {
-        var text = JsonSerializer.Serialize(query);
+        JsonSerializerOptions querySerializerOptions = new JsonSerializerOptions{IgnoreNullValues = true};
+        var text = JsonSerializer.Serialize(query, querySerializerOptions);
         var httpContent = new StringContent(text, Encoding.UTF8, "text/plain");
         var streamTask = await client.PostAsync("https://mediathekviewweb.de/api/query", httpContent);
         if(streamTask.IsSuccessStatusCode)
         {
-        String stringResult = await streamTask.Content.ReadAsStringAsync();
-        JsonSerializerOptions defaultSerializerSettings = new JsonSerializerOptions();
-        defaultSerializerSettings.IncludeFields = true;
-        defaultSerializerSettings.Converters.Add(new Custom.DateTimeConverter());
-        return JsonSerializer.Deserialize<MediathekResult>(stringResult, defaultSerializerSettings);
+            String stringResult = await streamTask.Content.ReadAsStringAsync();
+            JsonSerializerOptions resultSerializerOptions = new JsonSerializerOptions();
+            resultSerializerOptions.IncludeFields = true;
+            resultSerializerOptions.Converters.Add(new Custom.DateTimeConverter());
+            return JsonSerializer.Deserialize<MediathekResult>(stringResult, resultSerializerOptions);
         }
         return new MediathekResult{err = streamTask.ReasonPhrase};
     }
 }
+
 
 namespace Custom
 {
@@ -133,25 +140,4 @@ namespace Custom
                 throw new NotImplementedException();
             }
     }
-}
-public enum Channel
-{
-    ARD,
-    BR,
-    HR,
-    MDR,
-    NDR,
-    RBB,
-    SR,
-    SWR,
-    WDR,
-    ZDF,
-    Phoenix,
-    Kika,
-    DreiSat,
-    Arte,
-    DWTV,
-    ORF,
-    SRF
-
 }
