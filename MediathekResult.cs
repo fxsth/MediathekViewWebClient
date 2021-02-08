@@ -1,13 +1,16 @@
+using System;
 using System.Collections.Generic;
+using System.Numerics;
+
 public class MediaElement
 {
     public string channel{get;set;}
     public string topic{get;set;}
     public string title{get;set;}
     public string description{get;set;}
-    public int timestamp{get;set;}
-    public int duration{get;set;}
-    public long size{get;set;}
+    public DateTime timestamp{get;set;}
+    public uint? duration{get;set;}
+    public uint? size{get;set;}
     public string url_website{get;set;}
     public string url_subtitle{get;set;}
     public string url_video{get;set;}

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using QueryData;
 
@@ -27,11 +28,20 @@ public class MediathekClient
             _query.queries.Add(new FieldAndQuery() { fields = "topic", query = value });
         }
     }
-    public string channel
+    public Channel channel
     {
         set
         {
-            _query.queries.Add(new FieldAndQuery() { fields = "channel", query = value });
+            string channelName;
+            if(value == Channel.DreiSat)
+            {
+               channelName = "3sat";
+            }
+            else
+            {
+                channelName = Enum.GetName<Channel>(value);
+            }
+            _query.queries.Add(new FieldAndQuery() { fields = "channel", query = channelName });
         }
     }
     public int duration
@@ -98,8 +108,50 @@ public class MediathekClient
         String stringResult = await streamTask.Content.ReadAsStringAsync();
         JsonSerializerOptions defaultSerializerSettings = new JsonSerializerOptions();
         defaultSerializerSettings.IncludeFields = true;
+        defaultSerializerSettings.Converters.Add(new Custom.DateTimeConverter());
         return JsonSerializer.Deserialize<MediathekResult>(stringResult, defaultSerializerSettings);
         }
         return new MediathekResult{err = streamTask.ReasonPhrase};
     }
+}
+
+namespace Custom
+{
+    public class DateTimeConverter : JsonConverter<DateTime>
+    {
+        public override DateTime Read(
+            ref Utf8JsonReader reader,
+            Type typeToConvert,
+            JsonSerializerOptions options) =>
+                DateTimeOffset.FromUnixTimeSeconds(reader.GetInt32()).DateTime;
+
+        public override void Write(
+            Utf8JsonWriter writer,
+            DateTime dateTimeValue,
+            JsonSerializerOptions options)
+            {
+                throw new NotImplementedException();
+            }
+    }
+}
+public enum Channel
+{
+    ARD,
+    BR,
+    HR,
+    MDR,
+    NDR,
+    RBB,
+    SR,
+    SWR,
+    WDR,
+    ZDF,
+    Phoenix,
+    Kika,
+    DreiSat,
+    Arte,
+    DWTV,
+    ORF,
+    SRF
+
 }

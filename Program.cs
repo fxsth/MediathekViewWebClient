@@ -5,7 +5,7 @@ class Program
 {
     static async Task Main(string[] args)
     {
-        MediathekClient client = new MediathekClient { channel = "ard", size=100};
+        MediathekClient client = new MediathekClient { channel = Channel.ARD, size=1000};
         var response = await client.query();
         var count = response.countResults();
         Console.WriteLine("Anzahl Ergebnisse: " + count.ToString());
