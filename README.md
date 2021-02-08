@@ -1,7 +1,7 @@
 # Client for calling the MediathekViewWeb-API
 Example:
 
-<code>
+```C#
 MediathekClient clientFirstOption = new MediathekClient {  
     topic = "Der Tatortreiniger",  
     channel = Channel.NDR  
@@ -25,4 +25,4 @@ foreach (var res in response.result.results)
     Console.WriteLine(res.url_video_hd);
     Console.WriteLine();
 }
-</code>
+```
