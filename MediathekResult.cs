@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 
+namespace ResultData
+{
 public class MediaElement
 {
     public string channel{get;set;}
@@ -51,4 +53,4 @@ public class MediathekResult
         return err != null;
     }
 }
-
+}

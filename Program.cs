@@ -7,8 +7,10 @@ class Program
     {
         // query specific fields by setting the variables
         MediathekClient clientFirstOption = new MediathekClient {
-            topic = "Der Tatortreiniger",
-            channel = Channel.NDR
+            title = "Frage trifft Antwort - Wie sieht es in einer Karsthöhle aus?",
+            topic = "Planet Schule - Natur & Umwelt",
+            channel = Channel.SWR,
+            size = 1
         };
         // or use the functions to define the query
         MediathekClient clientSecondOption = new MediathekClient()
@@ -22,6 +24,11 @@ class Program
         Console.WriteLine("Anzahl Ergebnisse: " + count.ToString());
         Console.WriteLine("Aufgetretene Fehler: " + response?.err?.ToString());
         if(count==0){return;}
+        // download stuff
+        MediathekDownloader downloader = new MediathekDownloader();
+        MediathekDownloadOptions options = new MediathekDownloadOptions();
+        options.SetQualityLD();
+        options.NameFileAfterTopicTitle();
         foreach (var res in response.result.results)
         {
             Console.WriteLine(res.title);
@@ -31,6 +38,10 @@ class Program
             Console.WriteLine(res.url_video_hd);
             Console.WriteLine(res.duration);
             Console.WriteLine();
+            // sequential download
+            downloader.Download(res, options);
+            // async
+            await downloader.DownloadAsync(res, "Planet Schule Folge X");
         }
     }
 }
