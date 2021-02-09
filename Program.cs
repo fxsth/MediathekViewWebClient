@@ -41,7 +41,7 @@ class Program
             // sequential download
             downloader.Download(res, options);
             // async
-            await downloader.DownloadAsync(res, "Planet Schule Folge X");
+            await downloader.DownloadAsync(res, "Planet Schule Folge X.mp4");
         }
     }
 }

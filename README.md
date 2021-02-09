@@ -40,7 +40,7 @@ foreach (var res in response.result.results)
     // sequential download
     downloader.Download(res, options);
     // async
-    await downloader.DownloadAsync(res, "Planet Schule Folge X");
+    await downloader.DownloadAsync(res, "Planet Schule Folge X.mp4");
 }
 
 ```
