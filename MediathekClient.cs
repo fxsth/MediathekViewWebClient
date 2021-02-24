@@ -10,43 +10,53 @@ using ResultData;
 public class MediathekClient
 {
     public MediathekClient() => _query = new Query();
-    public MediathekClient searchTitle(string value){
-        _query.addFieldAndQuery("title", value );
-        return this;
-        }
-    public MediathekClient searchTitleOrTopic(string value){
-        _query.addFieldAndQuery("title", "topic", value );
+    public MediathekClient searchTitle(string value)
+    {
+        _query.addFieldAndQuery("title", value);
         return this;
     }
-    public MediathekClient searchTopic(string value) {
-        _query.addFieldAndQuery("topic", value );
+    public MediathekClient searchTitleOrTopic(string value)
+    {
+        _query.addFieldAndQuery("title", "topic", value);
         return this;
     }
-    public MediathekClient searchChannel(Channel channel){
-        _query.addFieldAndQuery("channel", channel==Channel.DreiSat ? "3sat" : Enum.GetName<Channel>(channel) );
+    public MediathekClient searchTopic(string value)
+    {
+        _query.addFieldAndQuery("topic", value);
         return this;
     }
-    public MediathekClient searchDuration(string value) {
-        _query.addFieldAndQuery("duration", value );
+    public MediathekClient searchChannel(Channel channel)
+    {
+        _query.addFieldAndQuery("channel", channel == Channel.DreiSat ? "3sat" : Enum.GetName<Channel>(channel));
         return this;
     }
-    public MediathekClient searchId(string value) {
-        _query.addFieldAndQuery("id", value );
+    public MediathekClient searchDuration(string value)
+    {
+        _query.addFieldAndQuery("duration", value);
         return this;
     }
-    public MediathekClient withFutureMedia(bool value) {
+    public MediathekClient searchId(string value)
+    {
+        _query.addFieldAndQuery("id", value);
+        return this;
+    }
+    public MediathekClient withFutureMedia(bool value)
+    {
         _query.future = value;
         return this;
     }
-    public MediathekClient setOffset(int value) {
+    public MediathekClient setOffset(int value)
+    {
         _query.offset = value;
         return this;
     }
-    public MediathekClient setMaximumResults(int value) {
+    public MediathekClient setMaximumResults(int value)
+    {
         _query.size = value;
         return this;
     }
-    public MediathekClient orderResultsBy(string value, SortOrder order = SortOrder.asc) {
+    public MediathekClient orderResultsBy(string value, SortOrder order = SortOrder.asc)
+    {
         _query.sortBy = value;
         _query.sortOrder = Enum.GetName<SortOrder>(order);
         return this;
@@ -55,23 +65,23 @@ public class MediathekClient
 
     public string title
     {
-        set => _query.addFieldAndQuery("title", value );
+        set => _query.addFieldAndQuery("title", value);
     }
     public string topic
     {
-        set => _query.addFieldAndQuery("topic", value );
+        set => _query.addFieldAndQuery("topic", value);
     }
     public Channel channel
     {
-        set =>_query.addFieldAndQuery("channel", value==Channel.DreiSat ? "3sat" : Enum.GetName<Channel>(value) );
+        set => _query.addFieldAndQuery("channel", value == Channel.DreiSat ? "3sat" : Enum.GetName<Channel>(value));
     }
     public int duration
     {
-        set => _query.addFieldAndQuery("duration", value.ToString() );
+        set => _query.addFieldAndQuery("duration", value.ToString());
     }
     public string id
     {
-        set => _query.addFieldAndQuery("id", value );
+        set => _query.addFieldAndQuery("id", value);
     }
     public bool future
     {
@@ -106,19 +116,29 @@ public class MediathekClient
 
     private static async Task<MediathekResult> ProcessQuery(Query query)
     {
-        JsonSerializerOptions querySerializerOptions = new JsonSerializerOptions{IgnoreNullValues = true};
+        JsonSerializerOptions querySerializerOptions = new JsonSerializerOptions { IgnoreNullValues = true };
         var text = JsonSerializer.Serialize(query, querySerializerOptions);
         var httpContent = new StringContent(text, Encoding.UTF8, "text/plain");
         var streamTask = await client.PostAsync("https://mediathekviewweb.de/api/query", httpContent);
-        if(streamTask.IsSuccessStatusCode)
+        if (streamTask.IsSuccessStatusCode)
         {
             String stringResult = await streamTask.Content.ReadAsStringAsync();
             JsonSerializerOptions resultSerializerOptions = new JsonSerializerOptions();
             resultSerializerOptions.IncludeFields = true;
             resultSerializerOptions.Converters.Add(new Custom.DateTimeConverter());
-            return JsonSerializer.Deserialize<MediathekResult>(stringResult, resultSerializerOptions);
+            resultSerializerOptions.Converters.Add(new Custom.UInt32Converter());
+            MediathekResult res = null;
+            try
+            {
+                res = JsonSerializer.Deserialize<MediathekResult>(stringResult, resultSerializerOptions);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+            return res;
         }
-        return new MediathekResult{err = streamTask.ReasonPhrase};
+        return new MediathekResult { err = streamTask.ReasonPhrase };
     }
 }
 
@@ -137,8 +157,44 @@ namespace Custom
             Utf8JsonWriter writer,
             DateTime dateTimeValue,
             JsonSerializerOptions options)
+        {
+            throw new NotImplementedException();
+        }
+    }
+    public class UInt32Converter : JsonConverter<UInt32?>
+    {
+        public override UInt32? Read(
+            ref Utf8JsonReader reader,
+            Type typeToConvert,
+            JsonSerializerOptions options)
+        {
+            UInt32 number;
+            try
             {
-                throw new NotImplementedException();
+                return reader.GetUInt32();
             }
+            catch
+            {
+                if (UInt32.TryParse(reader.GetString(), out number))
+                {
+                    return number;
+                }
+                return null;
+            }
+        }
+
+        public override void Write(Utf8JsonWriter writer, uint? value, JsonSerializerOptions options)
+        {
+            throw new NotImplementedException();
+        }
+
+        // public override void Write(
+        //     Utf8JsonWriter writer,
+        //     DateTime dateTimeValue,
+        //     JsonSerializerOptions options)
+        // {
+        //     throw new NotImplementedException();
+        // }
+
     }
 }
